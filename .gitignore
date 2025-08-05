@@ -1,0 +1,19 @@
+# Environment files with sensitive data
+.env
+.env.local
+.env.production
+
+# Docker volumes
+db1_data/
+db2_data/
+consul_data/
+
+# Generated patroni configs
+db/patroni.yml
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
