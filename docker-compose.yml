@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  consul:
+    image: hashicorp/consul:1.15
+    container_name: consul
+    volumes:
+      - ./consul/consul.json:/consul/config/consul.json
+    ports:
+      - "8500:8500"   # UI
+      - "8600:8600/udp"
+      - "8300:8300"
+      - "8301:8301"
+      - "8301:8301/udp"
+      - "8302:8302"
+      - "8302:8302/udp"
+
+  db1:
+    build: db/
+    container_name: db1
+    environment:
+      PATRONI_NAME: db1
+      PATRONI_SCOPE: pgcluster
+      PATRONI_RESTAPI_LISTEN: 0.0.0.0:8008
+      PATRONI_RESTAPI_CONNECT_ADDRESS: db1:8008
+      PATRONI_POSTGRESQL_LISTEN: 0.0.0.0:5432
+      PATRONI_POSTGRESQL_CONNECT_ADDRESS: db1:5432
+      PATRONI_SUPERUSER_PASSWORD: postgrespass
+      PATRONI_REPLICATION_USERNAME: replicator
+      PATRONI_REPLICATION_PASSWORD: replpass
+    volumes:
+      - ./db/patroni-db1.yml:/home/patroni/patroni.yml
+    ports:
+      - "5433:5432"
+      - "8001:8008"
+    depends_on:
+      - consul
+
+  db2:
+    build: db/
+    container_name: db2
+    environment:
+      PATRONI_NAME: db2
+      PATRONI_SCOPE: pgcluster
+      PATRONI_RESTAPI_LISTEN: 0.0.0.0:8008
+      PATRONI_RESTAPI_CONNECT_ADDRESS: db2:8008
+      PATRONI_POSTGRESQL_LISTEN: 0.0.0.0:5432
+      PATRONI_POSTGRESQL_CONNECT_ADDRESS: db2:5432
+      PATRONI_SUPERUSER_PASSWORD: postgrespass
+      PATRONI_REPLICATION_USERNAME: replicator
+      PATRONI_REPLICATION_PASSWORD: replpass
+    volumes:
+      - ./db/patroni-db2.yml:/home/patroni/patroni.yml
+    ports:
+      - "5434:5432"
+      - "8002:8008"
+    depends_on:
+      - consul
+
+  pgpool:
+    image: bitnami/pgpool:latest
+    container_name: pgpool
+    environment:
+      PGPOOL_BACKEND_NODES: 0:db1:5432,1:db2:5432
+      PGPOOL_SR_CHECK_USER: postgres
+      PGPOOL_SR_CHECK_PASSWORD: postgrespass
+      PGPOOL_POSTGRES_USERNAME: postgres
+      PGPOOL_POSTGRES_PASSWORD: postgrespass
+      PGPOOL_ENABLE_LOAD_BALANCING: "yes"
+      PGPOOL_ENABLE_HEALTH_CHECK: "yes"
+    ports:
+      - "5432:5432"
+    depends_on:
+      - db1
+      - db2
+

@@ -1,0 +1,37 @@
+scope: pgcluster
+name: db1
+
+restapi:
+  listen: 0.0.0.0:8008
+  connect_address: db1:8008
+
+consul:
+  host: consul:8500
+  register_service: true
+  checks:
+    ttl: 10
+
+postgresql:
+  listen: 0.0.0.0:5432
+  connect_address: db1:5432
+  data_dir: /home/patroni/pgdata
+  bin_dir: /usr/lib/postgresql/14/bin
+  authentication:
+    replication:
+      username: replicator
+      password: replpass
+    superuser:
+      username: postgres
+      password: postgrespass
+
+bootstrap:
+  dcs:
+    postgresql:
+      use_pg_rewind: true
+  initdb:
+    - encoding: UTF8
+    - data-checksums
+  users:
+    postgres:
+      password: postgrespass
+
