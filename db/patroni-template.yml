@@ -27,6 +27,17 @@ bootstrap:
   dcs:
     postgresql:
       use_pg_rewind: true
+      pg_hba:
+        - local   all             postgres                                peer
+        - local   all             all                                     peer
+        - host    all             all             127.0.0.1/32            md5
+        - host    all             all             ::1/128                 md5
+        - host    all             postgres        172.18.0.0/16           md5
+        - host    all             postgres        0.0.0.0/0               md5
+        - host    replication     replicator      172.18.0.0/16           md5
+        - local   replication     all                                     peer
+        - host    replication     all             127.0.0.1/32            md5
+        - host    replication     all             ::1/128                 md5
       parameters:
         max_connections: 100
         shared_preload_libraries: "pg_stat_statements"
@@ -50,3 +61,7 @@ bootstrap:
   users:
     postgres:
       password: ${PATRONI_SUPERUSER_PASSWORD}
+    ${PATRONI_REPLICATION_USERNAME}:
+      password: ${PATRONI_REPLICATION_PASSWORD}
+      options:
+        - replication
