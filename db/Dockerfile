@@ -3,16 +3,21 @@ FROM postgres:17-bookworm
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3-pip python3-dev gcc libpq-dev curl \
- && pip3 install --no-cache-dir --upgrade pip \
- && pip3 install patroni[consul] psycopg2-binary \
- && apt-get clean && rm -rf /var/lib/apt/lists/*
+    python3-pip python3-dev gcc libpq-dev curl gettext-base \
+    && pip3 install --no-cache-dir --upgrade pip \
+    && pip3 install patroni[consul] psycopg2-binary \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN useradd -ms /bin/bash patroni
 USER patroni
 WORKDIR /home/patroni
 
+COPY patroni-template.yml /home/patroni/patroni-template.yml
+COPY entrypoint.sh /home/patroni/entrypoint.sh
+USER root
+RUN chmod +x /home/patroni/entrypoint.sh
+USER patroni
+
 EXPOSE 5432 8008
 
-CMD ["patroni", "/home/patroni/patroni.yml"]
-
+CMD ["/home/patroni/entrypoint.sh"]
