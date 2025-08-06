@@ -1,4 +1,4 @@
-scope: ${PATRONI_SCOPE}
+scope: pgcluster
 name: ${PATRONI_NAME}
 
 restapi:
@@ -8,8 +8,7 @@ restapi:
 consul:
   host: consul:8500
   register_service: true
-  checks:
-    ttl: 10
+  checks: []
 
 postgresql:
   listen: 0.0.0.0:5432
