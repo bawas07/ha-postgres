@@ -10,13 +10,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN useradd -ms /bin/bash patroni
-USER patroni
+
 WORKDIR /home/patroni
 
 COPY patroni-template.yml /home/patroni/patroni-template.yml
 COPY entrypoint.sh /home/patroni/entrypoint.sh
-USER root
-RUN chmod +x /home/patroni/entrypoint.sh
+
+RUN mkdir -p /home/patroni/pgdata && \
+    chmod +x /home/patroni/entrypoint.sh && \
+    chown -R patroni:patroni /home/patroni
+
 USER patroni
 
 EXPOSE 5432 8008
