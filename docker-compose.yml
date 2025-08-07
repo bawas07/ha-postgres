@@ -14,6 +14,8 @@ services:
       - "8302:8302"
       - "8302:8302/udp"
     restart: unless-stopped
+    networks:
+      - pg_cluster
 
   db1:
     build: db/
@@ -30,6 +32,8 @@ services:
     depends_on:
       - consul
     restart: unless-stopped
+    networks:
+      - pg_cluster
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8008/health || exit 1"]
       interval: 10s
@@ -51,6 +55,8 @@ services:
     depends_on:
       - consul
     restart: unless-stopped
+    networks:
+      - pg_cluster
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8008/health || exit 1"]
       interval: 10s
@@ -79,8 +85,17 @@ services:
       db2:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - pg_cluster
 
 volumes:
   consul_data:
   db1_data:
   db2_data:
+
+networks:
+  pg_cluster:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${DOCKER_SUBNET:-172.20.0.0/16}
